@@ -984,7 +984,15 @@ createBtn.onclick = async () => {
     });
     const data = await r.json();
     if (data.slug) {
-      window.location.href = "/" + data.slug;
+      // Client-side nav (avoids full reload + blob propagation race)
+      PAGE = data.slug;
+      history.pushState(null, "", "/" + data.slug);
+      showView("list");
+      await api();
+      await ensureName();
+      startRefresh();
+      itemInput.focus();
+      return;
     }
   } catch (e) {
     createBtn.disabled = false;
@@ -1043,7 +1051,7 @@ function ensureName() {
 }
 
 // API
-async function api(body, retries) {
+async function api(body) {
   syncDot.classList.add("show");
   syncLabel.textContent = "Syncing";
   try {
@@ -1053,11 +1061,6 @@ async function api(body, retries) {
       : {};
     const r = await fetch(url, opts);
     if (r.status === 404) {
-      // Retry once on initial load (blob propagation)
-      if (!body && retries !== false) {
-        await new Promise(ok => setTimeout(ok, 800));
-        return api(body, false);
-      }
       showView("notfound");
       return;
     }

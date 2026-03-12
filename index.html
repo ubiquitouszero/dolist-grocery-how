@@ -962,8 +962,8 @@ function showView(view) {
   landingView.style.display = "none";
   listView.style.display = "none";
   notFoundView.style.display = "none";
-  if (view === "landing") landingView.style.display = "";
-  else if (view === "list") listView.style.display = "";
+  if (view === "landing") landingView.style.display = "flex";
+  else if (view === "list") listView.style.display = "block";
   else if (view === "notfound") notFoundView.style.display = "flex";
 }
 

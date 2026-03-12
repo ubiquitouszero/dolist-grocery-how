@@ -1,0 +1,4 @@
+# SPA routing - all paths serve index.html
+# API functions are handled by Netlify Functions automatically
+/privacy  /privacy.html  200
+/*        /index.html    200

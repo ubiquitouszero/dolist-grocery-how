@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title id="pageTitle">dolist.how</title>
+<meta name="robots" content="index, follow">
+<meta name="description" content="Dead-simple shared checklists. No accounts, no app. Open a link, make a list, share the URL.">
+<meta property="og:title" content="dolist.how">
+<meta property="og:description" content="Dead-simple shared checklists. No accounts, no app. Open a link, make a list, share the URL.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg: #fafaf7;
+  --surface: #fff;
+  --surface-hover: #f5f5f0;
+  --border: #e8e5df;
+  --border-light: #f0ede8;
+  --text: #1a1a18;
+  --text-secondary: #6b6860;
+  --text-tertiary: #9b978f;
+  --accent: #1a6b5a;
+  --accent-light: #e8f5f0;
+  --accent-hover: #15574a;
+  --star: #c4880d;
+  --star-light: #fef3dc;
+  --danger: #c53030;
+  --danger-light: #fde8e8;
+  --input-bg: #fff;
+  --input-border: #d4d0c8;
+  --shadow-sm: 0 1px 2px rgba(26,26,24,.06);
+  --shadow-md: 0 4px 12px rgba(26,26,24,.08);
+  --shadow-lg: 0 8px 24px rgba(26,26,24,.12);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-full: 100px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141412;
+    --surface: #1e1e1b;
+    --surface-hover: #282824;
+    --border: #2e2e28;
+    --border-light: #252520;
+    --text: #eae8e3;
+    --text-secondary: #9b978f;
+    --text-tertiary: #6b6860;
+    --accent: #3ec9a3;
+    --accent-light: #1a2e28;
+    --accent-hover: #34b892;
+    --star: #e9a820;
+    --star-light: #2a2412;
+    --danger: #f56565;
+    --danger-light: #2a1414;
+    --input-bg: #1e1e1b;
+    --input-border: #3a3a34;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.2);
+    --shadow-md: 0 4px 12px rgba(0,0,0,.3);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,.4);
+  }
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: -apple-system, 'SF Pro Text', system-ui, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 24px);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== LANDING PAGE ===== */
+.landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 24px 20px;
+  text-align: center;
+}
+
+.landing-logo {
+  font-size: 2.5rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.landing-logo span {
+  color: var(--accent);
+}
+
+.landing-tagline {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 40px;
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+.landing-form {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.landing-form input {
+  width: 100%;
+  padding: 16px 20px;
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--radius);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 400;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.landing-form input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.landing-form input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.landing-form button {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+  min-height: 52px;
+}
+
+.landing-form button:hover { background: var(--accent-hover); }
+.landing-form button:active { transform: scale(0.97); }
+.landing-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.landing-footer {
+  margin-top: 48px;
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  max-width: 300px;
+  line-height: 1.6;
+}
+
+.landing-footer a {
+  color: var(--text-tertiary);
+  text-decoration: underline;
+  text-decoration-color: var(--border);
+  text-underline-offset: 2px;
+}
+
+/* ===== LIST VIEW ===== */
+.container {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 16px 20px;
+  display: none;
+}
+
+/* Header */
+header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 12px 0 4px;
+}
+
+header h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.header-meta {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.share-btn {
+  padding: 6px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.share-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+
+.share-btn:active { transform: scale(0.96); }
+
+.sync-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sync-dot.show {
+  opacity: 1;
+  animation: pulse-dot 1s ease infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Add bar */
+.add-bar {
+  display: flex;
+  gap: 10px;
+  padding: 16px 0 8px;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 10;
+}
+
+.add-bar::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: -20px;
+  right: -20px;
+  height: 12px;
+  background: linear-gradient(var(--bg), transparent);
+  pointer-events: none;
+}
+
+.add-bar input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 16px;
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--radius);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 400;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.add-bar input::placeholder { color: var(--text-tertiary); }
+
+.add-bar input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.add-bar button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, transform 0.1s ease;
+  flex-shrink: 0;
+}
+
+.add-bar button:hover { background: var(--accent-hover); }
+.add-bar button:active { transform: scale(0.96); }
+
+/* Mic button */
+.mic-btn {
+  width: 48px;
+  height: 48px;
+  border: 1.5px solid var(--input-border) !important;
+  border-radius: var(--radius);
+  background: var(--surface) !important;
+  color: var(--text-secondary) !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mic-btn:hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  background: var(--accent-light) !important;
+}
+
+.mic-btn.listening {
+  background: #c53030 !important;
+  border-color: #c53030 !important;
+  color: #fff !important;
+  animation: mic-pulse 1.5s ease infinite;
+}
+
+@media (prefers-color-scheme: dark) {
+  .mic-btn.listening {
+    background: #e53e3e !important;
+    border-color: #e53e3e !important;
+  }
+}
+
+@keyframes mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(197,48,48,.4); }
+  50% { box-shadow: 0 0 0 8px rgba(197,48,48,0); }
+}
+
+.mic-btn.unsupported { display: none; }
+
+/* Favorites */
+.fav-section { padding: 12px 0 4px; }
+
+.fav-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+}
+
+.fav-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+}
+
+.fav-edit-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+
+.fav-edit-btn:hover { background: var(--accent-light); }
+
+.fav-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.fav-chip {
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: all 0.15s ease;
+  color: var(--text);
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+}
+
+.fav-chip:hover {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.fav-chip:active {
+  transform: scale(0.95);
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.fav-chip .x-badge {
+  display: none;
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 20px;
+  height: 20px;
+  background: var(--danger);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 12px;
+  line-height: 20px;
+  text-align: center;
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+
+.fav-editing .fav-chip .x-badge { display: block; }
+.fav-editing .fav-chip:hover {
+  border-color: var(--danger);
+  background: var(--danger-light);
+}
+
+/* Counts bar */
+.counts-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+
+.counts-bar .remaining {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* Item list */
+.list { padding: 4px 0; }
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 4px;
+  border-bottom: 1px solid var(--border-light);
+  transition: opacity 0.25s ease, transform 0.2s ease;
+}
+
+.item:last-child { border-bottom: none; }
+.item.checked { opacity: 0.45; }
+
+.item.checked .item-name {
+  text-decoration: line-through;
+  text-decoration-color: var(--text-tertiary);
+  text-decoration-thickness: 1.5px;
+}
+
+/* Checkbox */
+.cb {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+
+.cb::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+
+.item.checked .cb {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.cb svg {
+  width: 14px;
+  height: 14px;
+  stroke: #fff;
+  stroke-width: 3;
+  fill: none;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.item.checked .cb svg {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Item content */
+.item-info { flex: 1; min-width: 0; }
+
+.item-name {
+  font-size: 0.95rem;
+  font-weight: 500;
+  word-break: break-word;
+  line-height: 1.3;
+}
+
+.item-meta {
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+  font-weight: 400;
+}
+
+/* Item action buttons */
+.item-actions { display: flex; gap: 2px; flex-shrink: 0; }
+
+.item-actions button {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.item-actions button::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+
+.item-actions button:hover {
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+}
+
+.item-actions .fav-btn.is-fav { color: var(--star); }
+
+.item-actions .del-btn:hover {
+  color: var(--danger);
+  background: var(--danger-light);
+}
+
+/* Checked divider */
+.checked-divider {
+  padding: 10px 0 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.checked-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-light);
+}
+
+/* Footer actions */
+.actions {
+  display: flex;
+  gap: 10px;
+  padding: 16px 0;
+  flex-wrap: wrap;
+}
+
+.actions button {
+  padding: 10px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.actions button:hover {
+  border-color: var(--text-tertiary);
+  background: var(--surface-hover);
+}
+
+.actions button:active { transform: scale(0.97); }
+
+.actions .danger {
+  border-color: transparent;
+  color: var(--danger);
+  background: var(--danger-light);
+}
+
+.actions .danger:hover { border-color: var(--danger); }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--text-tertiary);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  opacity: 0.3;
+  line-height: 1;
+}
+
+.empty-text {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.empty-hint {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+}
+
+/* Name modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.modal-overlay.show { display: flex; }
+
+.modal-card {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 32px 28px;
+  width: min(340px, 100%);
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  animation: modal-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.92) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-card h2 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+
+.modal-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-tertiary);
+  margin-bottom: 20px;
+}
+
+.modal-card input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--radius);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 16px;
+  margin-bottom: 16px;
+  text-align: center;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modal-card input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.modal-card button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.modal-card button:hover { background: var(--accent-hover); }
+.modal-card button:active { transform: scale(0.97); }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: max(env(safe-area-inset-bottom, 16px), 24px);
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--text);
+  color: var(--bg);
+  padding: 10px 20px;
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+  z-index: 50;
+  white-space: nowrap;
+  box-shadow: var(--shadow-lg);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Not found */
+.not-found {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80dvh;
+  padding: 24px 20px;
+  text-align: center;
+}
+
+.not-found h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.not-found p {
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.not-found a {
+  padding: 12px 24px;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.not-found a:hover { background: var(--accent-hover); }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.05ms !important;
+  }
+}
+
+/* Focus visible */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+</style>
+</head>
+<body>
+
+<!-- LANDING PAGE -->
+<div class="landing" id="landingView">
+  <div class="landing-logo" id="landingLogo">do<span>list</span></div>
+  <p class="landing-tagline" id="landingTagline">Dead-simple shared checklists. No accounts, no app. Just a list with a URL.</p>
+  <div class="landing-form">
+    <input type="text" id="listNameInput" autocomplete="off" enterkeyhint="go" aria-label="Name your list">
+    <button id="createBtn">Make a list</button>
+  </div>
+  <p class="landing-footer">We store your list items and first names. Nothing else. No tracking, no ads, no accounts. <a href="/privacy">Privacy</a></p>
+</div>
+
+<!-- LIST VIEW -->
+<div class="container" id="listView">
+  <header>
+    <h1 id="listTitle">List</h1>
+    <div class="header-actions">
+      <button class="share-btn" id="shareBtn" aria-label="Share this list">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        Share
+      </button>
+      <div class="header-meta">
+        <span id="syncLabel"></span>
+        <span class="sync-dot" id="syncDot"></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="add-bar">
+    <input type="text" id="itemInput" placeholder="Add an item..." autocomplete="off" enterkeyhint="done" aria-label="Add list item">
+    <button class="mic-btn unsupported" id="micBtn" aria-label="Voice input" title="Add items by voice">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="1" width="6" height="11" rx="3"/><path d="M19 10v1a7 7 0 01-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
+    <button id="addBtn" aria-label="Add item">Add</button>
+  </div>
+
+  <div class="fav-section" id="favSection" style="display:none">
+    <div class="fav-header">
+      <span class="fav-label">Quick Add</span>
+      <button class="fav-edit-btn" id="editFavBtn">Edit</button>
+    </div>
+    <div class="fav-chips" id="favChips"></div>
+  </div>
+
+  <div class="counts-bar" id="counts"></div>
+  <div class="list" id="list"></div>
+
+  <div class="actions" id="actions" style="display:none">
+    <button id="clearBtn" class="danger">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m-10 0v14a2 2 0 002 2h4a2 2 0 002-2V6"/></svg>
+      Clear checked
+    </button>
+    <button id="editFavsToggle">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Favorites
+    </button>
+  </div>
+</div>
+
+<!-- NOT FOUND -->
+<div class="not-found" id="notFoundView">
+  <h2>List not found</h2>
+  <p>This list may have been deleted or the link is wrong.</p>
+  <a href="/">Make a new list</a>
+</div>
+
+<!-- NAME MODAL -->
+<div class="modal-overlay" id="nameModal">
+  <div class="modal-card">
+    <h2>Who's here?</h2>
+    <p class="modal-subtitle">So everyone knows who added what</p>
+    <input type="text" id="nameInput" placeholder="Your first name" autocomplete="given-name" enterkeyhint="done" aria-label="Your name">
+    <button id="nameBtn">Let's go</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<svg style="display:none">
+  <symbol id="check-icon" viewBox="0 0 24 24">
+    <polyline points="4 12 10 18 20 6"/>
+  </symbol>
+</svg>
+
+<script>
+// ===== ROUTING =====
+const path = window.location.pathname.replace(/^\/|\/$/g, "");
+const isGrocery = window.location.hostname.includes("grocery");
+const API_BASE = "/.netlify/functions/list";
+
+// Theme the landing page based on domain
+function themeLanding() {
+  const logo = document.getElementById("landingLogo");
+  const tagline = document.getElementById("landingTagline");
+  const input = document.getElementById("listNameInput");
+  const btn = document.getElementById("createBtn");
+  const title = document.getElementById("pageTitle");
+
+  if (isGrocery) {
+    logo.innerHTML = 'grocery<span>.how</span>';
+    tagline.textContent = "Shared grocery lists. No accounts, no app. Open a link and start shopping.";
+    input.placeholder = "What are you shopping for?";
+    btn.textContent = "Start shopping";
+    title.textContent = "grocery.how";
+    document.querySelector('meta[property="og:title"]').content = "grocery.how";
+    document.querySelector('meta[property="og:description"]').content = "Shared grocery lists. No accounts, no app.";
+  } else {
+    logo.innerHTML = 'do<span>list</span><span style="color:var(--text-tertiary);font-weight:400;font-size:0.5em">.how</span>';
+    input.placeholder = "What's this list for?";
+  }
+}
+
+// ===== VIEWS =====
+const landingView = document.getElementById("landingView");
+const listView = document.getElementById("listView");
+const notFoundView = document.getElementById("notFoundView");
+
+function showView(view) {
+  landingView.style.display = "none";
+  listView.style.display = "none";
+  notFoundView.style.display = "none";
+  if (view === "landing") landingView.style.display = "";
+  else if (view === "list") listView.style.display = "";
+  else if (view === "notfound") notFoundView.style.display = "flex";
+}
+
+// ===== LANDING =====
+const createBtn = document.getElementById("createBtn");
+const listNameInput = document.getElementById("listNameInput");
+
+createBtn.onclick = async () => {
+  createBtn.disabled = true;
+  createBtn.textContent = "Creating...";
+  try {
+    const name = listNameInput.value.trim() || (isGrocery ? "Grocery List" : "Untitled List");
+    const theme = isGrocery ? "grocery" : "general";
+    const r = await fetch(API_BASE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "create", name, theme })
+    });
+    const data = await r.json();
+    if (data.slug) {
+      window.location.href = "/" + data.slug;
+    }
+  } catch (e) {
+    createBtn.disabled = false;
+    createBtn.textContent = isGrocery ? "Start shopping" : "Make a list";
+    showToast("Something went wrong. Try again.");
+  }
+};
+
+listNameInput.onkeydown = (e) => {
+  if (e.key === "Enter") createBtn.click();
+};
+
+// ===== LIST STATE =====
+let PAGE = "";
+let state = { items: [], favorites: [], name: "", theme: "" };
+let userName = localStorage.getItem("dolist-name") || "";
+let editingFavs = false;
+
+const $ = (s) => document.querySelector(s);
+const listEl = $("#list");
+const favSection = $("#favSection");
+const favChips = $("#favChips");
+const countsEl = $("#counts");
+const actionsEl = $("#actions");
+const itemInput = $("#itemInput");
+const syncDot = $("#syncDot");
+const syncLabel = $("#syncLabel");
+
+// Toast
+function showToast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2000);
+}
+
+// Name prompt
+function ensureName() {
+  return new Promise((resolve) => {
+    if (userName) return resolve(userName);
+    const modal = $("#nameModal");
+    const input = $("#nameInput");
+    modal.classList.add("show");
+    setTimeout(() => input.focus(), 100);
+    const submit = () => {
+      const n = input.value.trim();
+      if (!n) return;
+      userName = n;
+      localStorage.setItem("dolist-name", n);
+      modal.classList.remove("show");
+      resolve(n);
+    };
+    $("#nameBtn").onclick = submit;
+    input.onkeydown = (e) => { if (e.key === "Enter") submit(); };
+  });
+}
+
+// API
+async function api(body) {
+  syncDot.classList.add("show");
+  syncLabel.textContent = "Syncing";
+  try {
+    const url = API_BASE + "?page=" + PAGE;
+    const opts = body
+      ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
+      : {};
+    const r = await fetch(url, opts);
+    if (r.status === 404) {
+      showView("notfound");
+      return;
+    }
+    state = await r.json();
+    render();
+  } catch (e) {
+    syncLabel.textContent = "Offline";
+    setTimeout(() => syncDot.classList.remove("show"), 2500);
+    return;
+  }
+  syncLabel.textContent = "";
+  syncDot.classList.remove("show");
+}
+
+// Render
+function render() {
+  // Update title
+  const displayName = state.name || "List";
+  document.getElementById("listTitle").textContent = displayName;
+  document.getElementById("pageTitle").textContent = displayName;
+
+  const unchecked = state.items.filter((i) => !i.checked);
+  const checked = state.items.filter((i) => i.checked);
+  const total = state.items.length;
+  const doneCount = checked.length;
+
+  listEl.innerHTML = "";
+
+  if (total === 0) {
+    const emptyIcon = state.theme === "grocery" ? "\u{1F6D2}" : "\u{1F4CB}";
+    listEl.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">${emptyIcon}</div>
+        <div class="empty-text">Your list is empty</div>
+        <div class="empty-hint">Type above or tap the mic to add items</div>
+      </div>`;
+  } else {
+    unchecked.forEach((item) => renderItem(item));
+    if (doneCount > 0) {
+      const divider = document.createElement("div");
+      divider.className = "checked-divider";
+      divider.textContent = "Done (" + doneCount + ")";
+      listEl.appendChild(divider);
+      checked.forEach((item) => renderItem(item));
+    }
+  }
+
+  // Counts
+  if (total > 0) {
+    countsEl.innerHTML = '<span class="remaining">' + (total - doneCount) + " item" + (total - doneCount !== 1 ? "s" : "") + " remaining</span>";
+  } else {
+    countsEl.innerHTML = "";
+  }
+
+  // Favorites
+  if (state.favorites && state.favorites.length > 0) {
+    favSection.style.display = "";
+    favChips.innerHTML = "";
+    favChips.className = "fav-chips" + (editingFavs ? " fav-editing" : "");
+    state.favorites.forEach((name) => {
+      const chip = document.createElement("div");
+      chip.className = "fav-chip";
+      chip.setAttribute("role", "button");
+      chip.setAttribute("tabindex", "0");
+      chip.innerHTML = esc(name) + '<span class="x-badge">&times;</span>';
+      if (editingFavs) {
+        chip.querySelector(".x-badge").onclick = (e) => {
+          e.stopPropagation();
+          api({ action: "remove-favorite", name });
+        };
+      } else {
+        const addFav = async () => {
+          await ensureName();
+          api({ action: "add", name, by: userName });
+          showToast("Added " + name);
+        };
+        chip.onclick = addFav;
+        chip.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); addFav(); } };
+      }
+      favChips.appendChild(chip);
+    });
+  } else {
+    favSection.style.display = "none";
+  }
+
+  actionsEl.style.display = total > 0 ? "" : "none";
+}
+
+function renderItem(item) {
+  const isFav = state.favorites && state.favorites.includes(item.name);
+  const div = document.createElement("div");
+  div.className = "item" + (item.checked ? " checked" : "");
+  div.innerHTML =
+    '<div class="cb" data-id="' + item.id + '" role="checkbox" aria-checked="' + item.checked + '" tabindex="0" aria-label="Mark ' + esc(item.name) + " as " + (item.checked ? "not done" : "done") + '">' +
+    '<svg><use href="#check-icon"/></svg></div>' +
+    '<div class="item-info"><div class="item-name">' + esc(item.name) + "</div>" +
+    '<div class="item-meta">' + esc(item.addedBy || "") + (item.checked && item.checkedBy ? " &middot; " + esc(item.checkedBy) + " checked" : "") + "</div></div>" +
+    '<div class="item-actions">' +
+    '<button class="fav-btn' + (isFav ? " is-fav" : "") + '" data-name="' + esc(item.name) + '" title="' + (isFav ? "Remove from favorites" : "Save as favorite") + '">' +
+    (isFav ? "\u2605" : "\u2606") + "</button>" +
+    '<button class="del-btn" data-id="' + item.id + '" title="Remove">&times;</button></div>';
+  listEl.appendChild(div);
+}
+
+function esc(s) {
+  const d = document.createElement("div");
+  d.textContent = s || "";
+  return d.innerHTML;
+}
+
+// Event: Add item
+$("#addBtn").onclick = async () => {
+  const name = itemInput.value.trim();
+  if (!name) return;
+  await ensureName();
+  itemInput.value = "";
+  await api({ action: "add", name, by: userName });
+  itemInput.focus();
+};
+
+itemInput.onkeydown = (e) => {
+  if (e.key === "Enter") $("#addBtn").click();
+};
+
+// Event: List interactions (delegated)
+listEl.addEventListener("click", async (e) => {
+  const cb = e.target.closest(".cb");
+  if (cb) {
+    await ensureName();
+    api({ action: "toggle", id: cb.dataset.id, by: userName });
+    return;
+  }
+  const del = e.target.closest(".del-btn");
+  if (del) {
+    api({ action: "remove", id: del.dataset.id });
+    return;
+  }
+  const fav = e.target.closest(".fav-btn");
+  if (fav) {
+    const name = fav.dataset.name;
+    const isFav = state.favorites && state.favorites.includes(name);
+    api({ action: isFav ? "remove-favorite" : "add-favorite", name });
+  }
+});
+
+listEl.addEventListener("keydown", (e) => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.closest(".cb")) {
+    e.preventDefault();
+    e.target.closest(".cb").click();
+  }
+});
+
+// Event: Clear checked
+$("#clearBtn").onclick = () => {
+  const count = state.items.filter((i) => i.checked).length;
+  if (count && confirm("Clear " + count + " checked item" + (count > 1 ? "s" : "") + "?")) {
+    api({ action: "clear-checked" });
+    showToast("Cleared " + count + " item" + (count > 1 ? "s" : ""));
+  }
+};
+
+// Event: Favorite editing
+$("#editFavBtn").onclick = () => {
+  editingFavs = !editingFavs;
+  $("#editFavBtn").textContent = editingFavs ? "Done" : "Edit";
+  render();
+};
+
+$("#editFavsToggle").onclick = () => {
+  editingFavs = !editingFavs;
+  $("#editFavBtn").textContent = editingFavs ? "Done" : "Edit";
+  favSection.style.display = "";
+  render();
+  favSection.scrollIntoView({ behavior: "smooth" });
+};
+
+// Event: Share
+$("#shareBtn").onclick = () => {
+  const url = window.location.origin + "/" + PAGE;
+  if (navigator.share) {
+    navigator.share({ title: state.name || "Shared List", url }).catch(() => {});
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => showToast("Link copied!"));
+  } else {
+    showToast(url);
+  }
+};
+
+// Speech-to-list
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const micBtn = $("#micBtn");
+let recognition = null;
+let listening = false;
+
+if (SpeechRecognition) {
+  micBtn.classList.remove("unsupported");
+  recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  recognition.lang = "en-US";
+
+  recognition.onresult = async (e) => {
+    await ensureName();
+    const transcript = e.results[e.results.length - 1][0].transcript.trim();
+    const items = transcript
+      .split(/,|\band\b/i)
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+    for (const name of items) {
+      await api({ action: "add", name, by: userName });
+    }
+    showToast("Added " + items.length + " item" + (items.length !== 1 ? "s" : ""));
+  };
+
+  recognition.onerror = (e) => {
+    if (e.error !== "aborted") showToast("Couldn't hear that");
+    stopListening();
+  };
+
+  recognition.onend = () => {
+    if (listening) {
+      try { recognition.start(); } catch (_) {}
+    }
+  };
+
+  micBtn.onclick = () => {
+    if (listening) stopListening();
+    else startListening();
+  };
+}
+
+function startListening() {
+  listening = true;
+  micBtn.classList.add("listening");
+  micBtn.setAttribute("aria-label", "Stop voice input");
+  itemInput.placeholder = "Listening...";
+  try { recognition.start(); } catch (_) {}
+}
+
+function stopListening() {
+  listening = false;
+  micBtn.classList.remove("listening");
+  micBtn.setAttribute("aria-label", "Voice input");
+  itemInput.placeholder = "Add an item...";
+  try { recognition.stop(); } catch (_) {}
+}
+
+// Auto-refresh
+let refreshTimer;
+function startRefresh() {
+  refreshTimer = setInterval(() => {
+    if (!document.hidden) api();
+  }, 15000);
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && PAGE) api();
+});
+
+// ===== INIT =====
+(async () => {
+  if (!path || path === "privacy") {
+    // Landing page
+    themeLanding();
+    showView("landing");
+    listNameInput.focus();
+  } else {
+    // List view
+    PAGE = path;
+    showView("list");
+    await api();
+    if (state.name) {
+      // Loaded successfully
+      await ensureName();
+      startRefresh();
+      itemInput.focus();
+    }
+  }
+})();
+</script>
+</body>
+</html>

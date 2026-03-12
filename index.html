@@ -928,7 +928,7 @@ button:focus-visible {
 <script>
 // ===== ROUTING =====
 const path = window.location.pathname.replace(/^\/|\/$/g, "");
-const isGrocery = window.location.hostname.includes("grocery");
+const isGrocery = window.location.hostname === "grocery.how" || window.location.hostname === "www.grocery.how";
 const API_BASE = "/.netlify/functions/list";
 
 // Theme the landing page based on domain

@@ -1043,7 +1043,7 @@ function ensureName() {
 }
 
 // API
-async function api(body) {
+async function api(body, retries) {
   syncDot.classList.add("show");
   syncLabel.textContent = "Syncing";
   try {
@@ -1053,6 +1053,11 @@ async function api(body) {
       : {};
     const r = await fetch(url, opts);
     if (r.status === 404) {
+      // Retry once on initial load (blob propagation)
+      if (!body && retries !== false) {
+        await new Promise(ok => setTimeout(ok, 800));
+        return api(body, false);
+      }
       showView("notfound");
       return;
     }

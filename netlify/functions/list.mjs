@@ -54,7 +54,7 @@ export default async (req, context) => {
       };
 
       await store.setJSON(slug, listData);
-      return new Response(JSON.stringify({ slug }), { headers: CORS });
+      return new Response(JSON.stringify({ slug, ...listData }), { headers: CORS });
     }
   }
 
@@ -107,6 +107,7 @@ export default async (req, context) => {
         state.items.push({
           id: makeId(),
           name,
+          category: (body.category || "").trim().slice(0, 50) || null,
           checked: false,
           addedBy: (body.by || "").slice(0, 30),
           addedAt: now,

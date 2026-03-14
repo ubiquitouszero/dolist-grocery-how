@@ -616,6 +616,34 @@ header h1 {
   background: var(--border-light);
 }
 
+/* Category headers */
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 0 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+.category-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.category-count {
+  font-weight: 500;
+  color: var(--text-tertiary);
+  font-size: 0.68rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 /* Footer actions */
 .actions {
   display: flex;
@@ -760,6 +788,86 @@ header h1 {
 
 .modal-card button:hover { background: var(--accent-hover); }
 .modal-card button:active { transform: scale(0.97); }
+
+/* Share modal */
+.share-card { max-width: 360px; }
+
+.share-url-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.share-url-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  font-size: 14px;
+  text-align: left;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  margin-bottom: 0;
+}
+
+.copy-btn {
+  padding: 10px 18px;
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent-light);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.copy-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.share-actions-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.share-action-btn {
+  flex: 1;
+  padding: 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.share-action-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.close-modal-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.close-modal-btn:hover { background: var(--border); }
 
 /* Toast */
 .toast {
@@ -917,6 +1025,26 @@ button:focus-visible {
   </div>
 </div>
 
+<!-- SHARE MODAL -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal-card share-card">
+    <h2>Share this list</h2>
+    <p class="modal-subtitle">Anyone with the link can view and edit</p>
+    <canvas id="qrCanvas" width="200" height="200" style="margin:0 auto 16px;display:block;border-radius:8px"></canvas>
+    <div class="share-url-row">
+      <input type="text" id="shareUrl" readonly aria-label="Share URL">
+      <button id="copyBtn" class="copy-btn" aria-label="Copy link">Copy</button>
+    </div>
+    <div class="share-actions-row">
+      <button id="nativeShareBtn" class="share-action-btn" style="display:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        Share
+      </button>
+    </div>
+    <button id="closeShareBtn" class="close-modal-btn">Done</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <svg style="display:none">
@@ -984,12 +1112,13 @@ createBtn.onclick = async () => {
     });
     const data = await r.json();
     if (data.slug) {
-      // Client-side nav (avoids full reload + blob propagation race)
+      // Client-side nav — use returned data directly (no GET, no blob race)
       PAGE = data.slug;
+      state = data;
+      lastStateJson = JSON.stringify(state);
       history.pushState(null, "", "/" + data.slug);
       showView("list");
-      await api();
-      await ensureName();
+      render();
       startRefresh();
       itemInput.focus();
       return;
@@ -1008,6 +1137,7 @@ listNameInput.onkeydown = (e) => {
 // ===== LIST STATE =====
 let PAGE = "";
 let state = { items: [], favorites: [], name: "", theme: "" };
+let lastStateJson = "";
 let userName = localStorage.getItem("dolist-name") || "";
 let editingFavs = false;
 
@@ -1065,7 +1195,11 @@ async function api(body) {
       return;
     }
     state = await r.json();
-    render();
+    const newJson = JSON.stringify(state);
+    if (body || newJson !== lastStateJson) {
+      lastStateJson = newJson;
+      render();
+    }
   } catch (e) {
     syncLabel.textContent = "Offline";
     setTimeout(() => syncDot.classList.remove("show"), 2500);
@@ -1095,10 +1229,32 @@ function render() {
       <div class="empty-state">
         <div class="empty-icon">${emptyIcon}</div>
         <div class="empty-text">Your list is empty</div>
-        <div class="empty-hint">Type above or tap the mic to add items</div>
+        <div class="empty-hint">Type above or tap the mic to add items.<br>Use "Category: Item" to organize.</div>
       </div>`;
   } else {
-    unchecked.forEach((item) => renderItem(item));
+    // Group unchecked items by category
+    const catGroups = new Map();
+    unchecked.forEach(item => {
+      const c = item.category || "";
+      if (!catGroups.has(c)) catGroups.set(c, []);
+      catGroups.get(c).push(item);
+    });
+
+    // Uncategorized items first
+    const noCat = catGroups.get("") || [];
+    noCat.forEach(item => renderItem(item));
+    catGroups.delete("");
+
+    // Then each category group
+    for (const [cat, items] of catGroups) {
+      const h = document.createElement("div");
+      h.className = "category-header";
+      h.innerHTML = esc(cat) + ' <span class="category-count">' + items.length + '</span>';
+      listEl.appendChild(h);
+      items.forEach(item => renderItem(item));
+    }
+
+    // Checked items section
     if (doneCount > 0) {
       const divider = document.createElement("div");
       divider.className = "checked-divider";
@@ -1157,7 +1313,7 @@ function renderItem(item) {
     '<div class="cb" data-id="' + item.id + '" role="checkbox" aria-checked="' + item.checked + '" tabindex="0" aria-label="Mark ' + esc(item.name) + " as " + (item.checked ? "not done" : "done") + '">' +
     '<svg><use href="#check-icon"/></svg></div>' +
     '<div class="item-info"><div class="item-name">' + esc(item.name) + "</div>" +
-    '<div class="item-meta">' + esc(item.addedBy || "") + (item.checked && item.checkedBy ? " &middot; " + esc(item.checkedBy) + " checked" : "") + "</div></div>" +
+    '<div class="item-meta">' + (item.checked && item.category ? esc(item.category) + " &middot; " : "") + esc(item.addedBy || "") + (item.checked && item.checkedBy ? " &middot; " + esc(item.checkedBy) + " checked" : "") + "</div></div>" +
     '<div class="item-actions">' +
     '<button class="fav-btn' + (isFav ? " is-fav" : "") + '" data-name="' + esc(item.name) + '" title="' + (isFav ? "Remove from favorites" : "Save as favorite") + '">' +
     (isFav ? "\u2605" : "\u2606") + "</button>" +
@@ -1171,13 +1327,25 @@ function esc(s) {
   return d.innerHTML;
 }
 
+// Parse "Category: Item" syntax
+function parseCategory(input) {
+  const colonIdx = input.indexOf(":");
+  if (colonIdx > 0 && colonIdx < input.length - 1) {
+    const cat = input.slice(0, colonIdx).trim();
+    const name = input.slice(colonIdx + 1).trim();
+    if (cat && name) return { category: cat, name };
+  }
+  return { category: "", name: input };
+}
+
 // Event: Add item
 $("#addBtn").onclick = async () => {
-  const name = itemInput.value.trim();
-  if (!name) return;
+  const raw = itemInput.value.trim();
+  if (!raw) return;
   await ensureName();
   itemInput.value = "";
-  await api({ action: "add", name, by: userName });
+  const { category, name } = parseCategory(raw);
+  await api({ action: "add", name, category, by: userName });
   itemInput.focus();
 };
 
@@ -1237,17 +1405,387 @@ $("#editFavsToggle").onclick = () => {
   favSection.scrollIntoView({ behavior: "smooth" });
 };
 
-// Event: Share
+// Event: Share — opens modal with QR + link
 $("#shareBtn").onclick = () => {
   const url = window.location.origin + "/" + PAGE;
-  if (navigator.share) {
-    navigator.share({ title: state.name || "Shared List", url }).catch(() => {});
-  } else if (navigator.clipboard) {
-    navigator.clipboard.writeText(url).then(() => showToast("Link copied!"));
-  } else {
-    showToast(url);
+  const modal = $("#shareModal");
+  const urlInput = $("#shareUrl");
+  urlInput.value = url;
+
+  // Show native share button if available
+  const nativeBtn = $("#nativeShareBtn");
+  if (navigator.share) nativeBtn.style.display = "";
+  else nativeBtn.style.display = "none";
+
+  // Generate QR code
+  drawQR($("#qrCanvas"), url);
+
+  modal.classList.add("show");
+};
+
+$("#copyBtn").onclick = () => {
+  const url = $("#shareUrl").value;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      $("#copyBtn").textContent = "Copied!";
+      setTimeout(() => { $("#copyBtn").textContent = "Copy"; }, 1500);
+    });
   }
 };
+
+$("#nativeShareBtn").onclick = () => {
+  const url = $("#shareUrl").value;
+  navigator.share({ title: state.name || "Shared List", url }).catch(() => {});
+};
+
+$("#closeShareBtn").onclick = () => {
+  $("#shareModal").classList.remove("show");
+};
+
+$("#shareModal").onclick = (e) => {
+  if (e.target === $("#shareModal")) $("#shareModal").classList.remove("show");
+};
+
+// Minimal QR Code generator (QR version 2-6, mode byte, ECC-L)
+function drawQR(canvas, text) {
+  // Use a simple QR encoding via the Google Charts API rendered to an image
+  // Actually, to keep it zero-dependency, we'll use a tiny inline QR lib
+  // This generates a QR code as a 2D boolean matrix and draws it to canvas
+  const ctx = canvas.getContext("2d");
+  const size = canvas.width;
+
+  // Encode as a basic QR using the minimal approach: render via SVG data URI trick
+  // For reliability and zero deps, we use a well-tested approach: generate QR via
+  // a self-contained encoder
+
+  // Fallback: if text is short enough, use a simple L1/L2 QR
+  try {
+    const modules = qrEncode(text);
+    const modCount = modules.length;
+    const cellSize = Math.floor(size / (modCount + 8));
+    const offset = Math.floor((size - cellSize * modCount) / 2);
+
+    // Background
+    const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    ctx.fillStyle = isDark ? "#1e1e1b" : "#ffffff";
+    ctx.fillRect(0, 0, size, size);
+
+    // Modules
+    ctx.fillStyle = isDark ? "#eae8e3" : "#1a1a18";
+    for (let r = 0; r < modCount; r++) {
+      for (let c = 0; c < modCount; c++) {
+        if (modules[r][c]) {
+          ctx.fillRect(offset + c * cellSize, offset + r * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+  } catch (e) {
+    // Fallback: show URL text
+    ctx.fillStyle = window.matchMedia("(prefers-color-scheme: dark)").matches ? "#1e1e1b" : "#ffffff";
+    ctx.fillRect(0, 0, size, size);
+    ctx.fillStyle = window.matchMedia("(prefers-color-scheme: dark)").matches ? "#eae8e3" : "#1a1a18";
+    ctx.font = "12px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Scan not available", size / 2, size / 2);
+  }
+}
+
+// Minimal QR Code encoder (byte mode, ECC-L, versions 1-10)
+function qrEncode(text) {
+  const data = new TextEncoder().encode(text);
+  const len = data.length;
+
+  // Pick version (1-10 byte capacity at ECC-L)
+  const caps = [17,32,53,78,106,134,154,192,230,271];
+  let ver = 1;
+  for (let i = 0; i < caps.length; i++) {
+    if (len <= caps[i]) { ver = i + 1; break; }
+    if (i === caps.length - 1) ver = 10;
+  }
+
+  const size = ver * 4 + 17;
+  const grid = Array.from({length: size}, () => Array(size).fill(null));
+  const mask = Array.from({length: size}, () => Array(size).fill(false));
+
+  function set(r, c, v) {
+    if (r >= 0 && r < size && c >= 0 && c < size) {
+      grid[r][c] = v ? 1 : 0;
+      mask[r][c] = true;
+    }
+  }
+
+  // Finder patterns
+  function finder(row, col) {
+    for (let r = -1; r <= 7; r++) {
+      for (let c = -1; c <= 7; c++) {
+        const inOuter = r >= 0 && r <= 6 && c >= 0 && c <= 6;
+        const inInner = r >= 2 && r <= 4 && c >= 2 && c <= 4;
+        const onBorder = r === 0 || r === 6 || c === 0 || c === 6;
+        set(row + r, col + c, inOuter && (onBorder || inInner));
+      }
+    }
+  }
+
+  finder(0, 0);
+  finder(0, size - 7);
+  finder(size - 7, 0);
+
+  // Timing patterns
+  for (let i = 8; i < size - 8; i++) {
+    set(6, i, i % 2 === 0);
+    set(i, 6, i % 2 === 0);
+  }
+
+  // Dark module
+  set(size - 8, 8, true);
+
+  // Alignment patterns (version 2+)
+  if (ver >= 2) {
+    const positions = getAlignmentPositions(ver);
+    for (const r of positions) {
+      for (const c of positions) {
+        if (mask[r] && mask[r][c]) continue; // skip if overlaps finder
+        for (let dr = -2; dr <= 2; dr++) {
+          for (let dc = -2; dc <= 2; dc++) {
+            const v = Math.abs(dr) === 2 || Math.abs(dc) === 2 || (dr === 0 && dc === 0);
+            set(r + dr, c + dc, v);
+          }
+        }
+      }
+    }
+  }
+
+  // Reserve format info areas
+  for (let i = 0; i < 8; i++) {
+    if (!mask[8][i]) { grid[8][i] = 0; mask[8][i] = true; }
+    if (!mask[8][size - 1 - i]) { grid[8][size - 1 - i] = 0; mask[8][size - 1 - i] = true; }
+    if (!mask[i][8]) { grid[i][8] = 0; mask[i][8] = true; }
+    if (!mask[size - 1 - i][8]) { grid[size - 1 - i][8] = 0; mask[size - 1 - i][8] = true; }
+  }
+  if (!mask[8][8]) { grid[8][8] = 0; mask[8][8] = true; }
+
+  // Version info (version 7+)
+  if (ver >= 7) {
+    const vBits = getVersionBits(ver);
+    for (let i = 0; i < 18; i++) {
+      const bit = (vBits >> i) & 1;
+      const r = Math.floor(i / 3);
+      const c = size - 11 + (i % 3);
+      set(r, c, bit);
+      set(c, r, bit);
+    }
+  }
+
+  // Encode data
+  const codewords = encodeData(data, ver);
+
+  // Place data bits
+  let bitIdx = 0;
+  let upward = true;
+  for (let col = size - 1; col >= 1; col -= 2) {
+    if (col === 6) col = 5; // skip timing column
+    const rows = upward ? Array.from({length: size}, (_, i) => size - 1 - i) : Array.from({length: size}, (_, i) => i);
+    for (const row of rows) {
+      for (let dc = 0; dc <= 1; dc++) {
+        const c = col - dc;
+        if (mask[row][c]) continue;
+        const bit = bitIdx < codewords.length * 8 ? (codewords[Math.floor(bitIdx / 8)] >> (7 - (bitIdx % 8))) & 1 : 0;
+        grid[row][c] = bit;
+        bitIdx++;
+      }
+    }
+    upward = !upward;
+  }
+
+  // Mark which cells had data placed (not function patterns)
+  // mask was set true for function patterns BEFORE data placement
+  // We need a separate tracker. Simpler: re-derive from mask state before data placement.
+  // Actually, we set mask=true for function patterns. Data bits were placed where mask[r][c]===false.
+  // So to apply QR mask only to data modules: apply where mask was false before data placement.
+  // But we already placed data... Let's just track data positions.
+  // Rebuild: apply mask to all non-function-pattern cells
+  const funcMask = Array.from({length: size}, () => Array(size).fill(false));
+  // Re-mark function patterns
+  function markFunc(r, c) { if (r >= 0 && r < size && c >= 0 && c < size) funcMask[r][c] = true; }
+  // Finders + separators
+  for (let r = 0; r <= 8; r++) for (let c = 0; c <= 8; c++) markFunc(r, c);
+  for (let r = 0; r <= 8; r++) for (let c = size - 8; c < size; c++) markFunc(r, c);
+  for (let r = size - 8; r < size; r++) for (let c = 0; c <= 8; c++) markFunc(r, c);
+  // Timing
+  for (let i = 0; i < size; i++) { markFunc(6, i); markFunc(i, 6); }
+  // Dark module
+  markFunc(size - 8, 8);
+  // Format info
+  for (let i = 0; i < 9; i++) { markFunc(8, i); markFunc(i, 8); markFunc(8, size - 1 - i); markFunc(size - 1 - i, 8); }
+  // Alignment
+  if (ver >= 2) {
+    const apos = getAlignmentPositions(ver);
+    for (const ar of apos) for (const ac of apos) {
+      if ((ar <= 8 && ac <= 8) || (ar <= 8 && ac >= size - 8) || (ar >= size - 8 && ac <= 8)) continue;
+      for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++) markFunc(ar + dr, ac + dc);
+    }
+  }
+  // Version info
+  if (ver >= 7) {
+    for (let i = 0; i < 18; i++) {
+      const r = Math.floor(i / 3); const c = size - 11 + (i % 3);
+      markFunc(r, c); markFunc(c, r);
+    }
+  }
+
+  // Apply mask pattern 0: (r+c)%2===0
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (funcMask[r][c]) continue;
+      if ((r + c) % 2 === 0) grid[r][c] ^= 1;
+    }
+  }
+
+  // Write format info for mask 0, ECC-L
+  const formatBits = getFormatBits(0); // mask 0, ECC level L
+  writeFormatBits(grid, size, formatBits);
+
+  return grid;
+}
+
+function getAlignmentPositions(ver) {
+  if (ver === 1) return [];
+  const table = [
+    [], [6,18], [6,22], [6,26], [6,30], [6,34],
+    [6,22,38], [6,24,42], [6,26,46], [6,28,50]
+  ];
+  return table[ver - 1] || [];
+}
+
+function getFormatBits(maskPattern) {
+  // ECC level L = 01, mask pattern 0-7
+  // Pre-computed format strings for L with masks 0-7
+  const formats = [
+    0x77C4, 0x72F3, 0x7DAA, 0x789D, 0x662F, 0x6318, 0x6C41, 0x6976
+  ];
+  return formats[maskPattern] || formats[0];
+}
+
+function writeFormatBits(grid, size, bits) {
+  // Horizontal: left side of row 8
+  const positions_h = [
+    [8,0],[8,1],[8,2],[8,3],[8,4],[8,5],[8,7],[8,8],
+    [8,size-8],[8,size-7],[8,size-6],[8,size-5],[8,size-4],[8,size-3],[8,size-2],[8,size-1]
+  ];
+  // Vertical: top of col 8
+  const positions_v = [
+    [0,8],[1,8],[2,8],[3,8],[4,8],[5,8],[7,8],[8,8],
+    [size-7,8],[size-6,8],[size-5,8],[size-4,8],[size-3,8],[size-2,8],[size-1,8]
+  ];
+  for (let i = 0; i < 15; i++) {
+    const bit = (bits >> (14 - i)) & 1;
+    if (positions_h[i]) grid[positions_h[i][0]][positions_h[i][1]] = bit;
+    if (positions_v[i]) grid[positions_v[i][0]][positions_v[i][1]] = bit;
+  }
+}
+
+function getVersionBits(ver) {
+  const table = [0,0,0,0,0,0,0,0x07C94,0x085BC,0x09A99,0x0A4D3];
+  return table[ver] || 0;
+}
+
+function encodeData(data, ver) {
+  // Total codewords for version at ECC-L
+  const totalCW = [26,44,70,100,134,172,196,242,292,346];
+  const dataCW = [19,34,55,80,108,136,156,194,232,274];
+  const eccCW_per_block = [7,10,15,20,26,36,40,48,60,72];
+
+  const total = totalCW[ver - 1];
+  const dataCount = dataCW[ver - 1];
+  const eccCount = eccCW_per_block[ver - 1];
+
+  // Build data stream: mode(4) + count(8 or 16) + data + terminator + padding
+  const bits = [];
+  function pushBits(val, count) {
+    for (let i = count - 1; i >= 0; i--) bits.push((val >> i) & 1);
+  }
+
+  pushBits(0b0100, 4); // Byte mode
+  const countBits = ver >= 10 ? 16 : 8;
+  pushBits(data.length, countBits);
+  for (const b of data) pushBits(b, 8);
+
+  // Terminator
+  const maxBits = dataCount * 8;
+  const termLen = Math.min(4, maxBits - bits.length);
+  pushBits(0, termLen);
+
+  // Pad to byte boundary
+  while (bits.length % 8 !== 0) bits.push(0);
+
+  // Pad bytes
+  let padByte = 0;
+  while (bits.length < maxBits) {
+    pushBits(padByte === 0 ? 0xEC : 0x11, 8);
+    padByte ^= 1;
+  }
+
+  // Convert to bytes
+  const dataBytes = [];
+  for (let i = 0; i < bits.length; i += 8) {
+    let b = 0;
+    for (let j = 0; j < 8; j++) b = (b << 1) | (bits[i + j] || 0);
+    dataBytes.push(b);
+  }
+
+  // Generate ECC
+  const eccBytes = rsEncode(dataBytes, eccCount);
+
+  // Interleave (single block for small versions)
+  return [...dataBytes, ...eccBytes];
+}
+
+// Reed-Solomon ECC over GF(256)
+function rsEncode(data, eccCount) {
+  const gfExp = new Uint8Array(512);
+  const gfLog = new Uint8Array(256);
+  let x = 1;
+  for (let i = 0; i < 255; i++) {
+    gfExp[i] = x;
+    gfLog[x] = i;
+    x = (x << 1) ^ (x >= 128 ? 0x11D : 0);
+  }
+  for (let i = 255; i < 512; i++) gfExp[i] = gfExp[i - 255];
+
+  function gfMul(a, b) {
+    if (a === 0 || b === 0) return 0;
+    return gfExp[gfLog[a] + gfLog[b]];
+  }
+
+  // Generator polynomial
+  let gen = [1];
+  for (let i = 0; i < eccCount; i++) {
+    const newGen = new Array(gen.length + 1).fill(0);
+    for (let j = 0; j < gen.length; j++) {
+      newGen[j] ^= gen[j];
+      newGen[j + 1] ^= gfMul(gen[j], gfExp[i]);
+    }
+    gen = newGen;
+  }
+
+  const result = new Uint8Array(eccCount);
+  const msg = new Uint8Array(data.length + eccCount);
+  msg.set(data);
+
+  for (let i = 0; i < data.length; i++) {
+    const coef = msg[i];
+    if (coef !== 0) {
+      for (let j = 0; j < gen.length; j++) {
+        msg[i + j] ^= gfMul(gen[j], coef);
+      }
+    }
+  }
+
+  for (let i = 0; i < eccCount; i++) {
+    result[i] = msg[data.length + i];
+  }
+  return result;
+}
 
 // Speech-to-list
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1269,8 +1807,9 @@ if (SpeechRecognition) {
       .split(/,|\band\b/i)
       .map(s => s.trim())
       .filter(s => s.length > 0);
-    for (const name of items) {
-      await api({ action: "add", name, by: userName });
+    for (const raw of items) {
+      const { category, name } = parseCategory(raw);
+      await api({ action: "add", name, category, by: userName });
     }
     showToast("Added " + items.length + " item" + (items.length !== 1 ? "s" : ""));
   };
@@ -1334,7 +1873,6 @@ document.addEventListener("visibilitychange", () => {
     await api();
     if (state.name) {
       // Loaded successfully
-      await ensureName();
       startRefresh();
       itemInput.focus();
     }
